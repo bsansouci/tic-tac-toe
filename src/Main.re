@@ -7,10 +7,12 @@ type gridPiece =
 type state = {
   grid: list(gridPiece),
   turn: gridPiece,
+  winner: option(list(int)),
 };
 
 /* Action declaration */
 type action =
+  | Restart
   | Click(int);
 
 /* Component template declaration.
@@ -29,29 +31,76 @@ let make = (~you, _children) => {
   initialState: () => {
     grid: [X, O, X, Empty, Empty, Empty, Empty, Empty, Empty],
     turn: X,
+    winner: None,
   },
   /* State transitions */
   reducer: (action, state) =>
     switch (state, action) {
-    | ({turn, grid}, Click(i)) when turn == you =>
+    | ({turn, grid}, Click(cell)) =>
+      let newGrid =
+        List.mapi(
+          (i, el) =>
+            if (cell === i) {
+              turn;
+            } else {
+              el;
+            },
+          grid,
+        );
+      let arrGrid = Array.of_list(newGrid);
+      let winner =
+        if (arrGrid[0] != Empty
+            && arrGrid[0] == arrGrid[1]
+            && arrGrid[1] == arrGrid[2]) {
+          Some([0, 1, 2]);
+        } else if (arrGrid[3] != Empty
+                   && arrGrid[3] == arrGrid[4]
+                   && arrGrid[4] == arrGrid[5]) {
+          Some([3, 4, 5]);
+        } else if (arrGrid[6] != Empty
+                   && arrGrid[6] == arrGrid[7]
+                   && arrGrid[7] == arrGrid[8]) {
+          Some([6, 7, 8]);
+        } else if (arrGrid[0] != Empty
+                   && arrGrid[0] == arrGrid[3]
+                   && arrGrid[3] == arrGrid[6]) {
+          Some([0, 3, 6]);
+        } else if (arrGrid[1] != Empty
+                   && arrGrid[1] == arrGrid[4]
+                   && arrGrid[4] == arrGrid[7]) {
+          Some([1, 4, 7]);
+        } else if (arrGrid[2] != Empty
+                   && arrGrid[2] == arrGrid[5]
+                   && arrGrid[5] == arrGrid[8]) {
+          Some([2, 5, 8]);
+        } else if (arrGrid[0] != Empty
+                   && arrGrid[0] == arrGrid[4]
+                   && arrGrid[4] == arrGrid[8]) {
+          Some([0, 4, 8]);
+        } else if (arrGrid[2] != Empty
+                   && arrGrid[2] == arrGrid[4]
+                   && arrGrid[4] == arrGrid[6]) {
+          Some([2, 4, 6]);
+        } else {
+          None;
+        };
+      ReasonReact.Update({winner, turn: turn === X ? O : X, grid: newGrid});
+    | (_, Restart) =>
       ReasonReact.Update({
-        turn: you === X ? O : X,
-        grid:
-          List.mapi(
-            (j, el) =>
-              if (i === j) {
-                you;
-              } else {
-                el;
-              },
-            grid,
-          ),
+        grid: [Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty],
+        turn: X,
+        winner: None,
       })
-    | _ => ReasonReact.NoUpdate
     },
   render: self => {
     let yourTurn = you == self.state.turn;
-    let message = yourTurn ? "Your turn" : "Their turn";
+    let message =
+      switch (self.state.winner) {
+      | None => yourTurn ? "Your turn" : "Their turn"
+      | Some([i, ..._]) =>
+        List.nth(self.state.grid, i) == X ? "X wins!" : "O wins"
+      | _ => assert false
+      };
     ReasonReact.(
       <div
         style=(
@@ -66,6 +115,9 @@ let make = (~you, _children) => {
         <div style=(ReactDOMRe.Style.make(~fontSize=px(45), ()))>
           (string(message))
         </div>
+        <button style=(ReactDOMRe.Style.make(~fontSize=px(20), ~marginTop=px(8), ~marginBottom=px(16), ())) onClick=(_event => self.send(Restart))>
+          (string("Restart"))
+        </button>
         <div
           style=(
             ReactDOMRe.Style.make(
@@ -90,7 +142,22 @@ let make = (~you, _children) => {
                       | X => ("X", false)
                       | O => ("O", false)
                       };
-                    let canClick = canClick && yourTurn;
+                    let backgroundColor =
+                      switch (self.state.winner) {
+                      | None => "white"
+                      | Some(winner) =>
+                        let isCurrentCellWinner = List.mem(i, winner);
+                        if (isCurrentCellWinner
+                            && List.nth(self.state.grid, i) == you) {
+                          "green";
+                        } else if (isCurrentCellWinner) {
+                          "red";
+                        } else {
+                          "white";
+                        };
+                      };
+                    let canClick =
+                      canClick && yourTurn && self.state.winner == None;
                     <div
                       key=(string_of_int(i))
                       onClick=(_event => canClick ? self.send(Click(i)) : ())
@@ -103,7 +170,7 @@ let make = (~you, _children) => {
                           ~marginLeft=px(2),
                           ~justifyContent="center",
                           ~alignItems="center",
-                          ~backgroundColor="white",
+                          ~backgroundColor,
                           ~cursor=canClick ? "pointer" : "",
                           (),
                         )
