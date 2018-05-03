@@ -23,8 +23,6 @@ let px = x => string_of_int(x) ++ "px";
 
 let pxf = x => string_of_float(x) ++ "px";
 
-/* greeting and children are props. `children` isn't used, therefore ignored.
-   We ignore it by prepending it with an underscore */
 let make = (~you, _children) => {
   /* spread the other default fields of component here and override a few */
   ...component,
