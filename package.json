@@ -1,0 +1,23 @@
+{
+  "name": "tic-tac-toe",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w"
+  },
+  "keywords": [
+    "BuckleScript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bs-socket": "reasonml-community/bs-socket.io",
+    "express": "^4.16.3",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "reason-react": ">=0.3.4"
+  },
+  "devDependencies": {
+    "bs-platform": "*"
+  }
+}
