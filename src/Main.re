@@ -113,7 +113,16 @@ let make = (~you, _children) => {
         <div style=(ReactDOMRe.Style.make(~fontSize=px(45), ()))>
           (string(message))
         </div>
-        <button style=(ReactDOMRe.Style.make(~fontSize=px(20), ~marginTop=px(8), ~marginBottom=px(16), ())) onClick=(_event => self.send(Restart))>
+        <button
+          style=(
+            ReactDOMRe.Style.make(
+              ~fontSize=px(20),
+              ~marginTop=px(8),
+              ~marginBottom=px(16),
+              (),
+            )
+          )
+          onClick=(_event => self.send(Restart))>
           (string("Restart"))
         </button>
         <div
