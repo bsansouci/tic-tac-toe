@@ -1,12 +1,16 @@
-type gridPiece =
+/* Type representing a grid cell */
+type gridCell =
   | X
   | O
   | Empty;
 
-/* State declaration */
+/* State declaration.
+   The grid is a simple linear list.
+   The turn uses a gridCell to figure out whether it's X or O's turn.
+   The winner will be a list of indices which we'll use to highlight the grid when someone won. */
 type state = {
-  grid: list(gridPiece),
-  turn: gridPiece,
+  grid: list(gridCell),
+  turn: gridCell,
   winner: option(list(int)),
 };
 
@@ -19,15 +23,17 @@ type action =
    Needs to be **after** state and action declarations! */
 let component = ReasonReact.reducerComponent("Game");
 
+/* Helper functions for CSS properties. */
 let px = x => string_of_int(x) ++ "px";
 
-let pxf = x => string_of_float(x) ++ "px";
-
+/* Main function that creates a component, which is a simple record.
+   `component` is the default record, of which we overwrite initialState, reducer and render.
+   */
 let make = (~you, _children) => {
   /* spread the other default fields of component here and override a few */
   ...component,
   initialState: () => {
-    grid: [X, O, X, Empty, Empty, Empty, Empty, Empty, Empty],
+    grid: [Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty],
     turn: X,
     winner: None,
   },
@@ -35,6 +41,7 @@ let make = (~you, _children) => {
   reducer: (action, state) =>
     switch (state, action) {
     | ({turn, grid}, Click(cell)) =>
+      /* Apply the action to the grid first, then we check if this new grid is in a winning state. */
       let newGrid =
         List.mapi(
           (i, el) =>
@@ -46,6 +53,9 @@ let make = (~you, _children) => {
           grid,
         );
       let arrGrid = Array.of_list(newGrid);
+      /* Military grade, Machine Learning based, winning-condition checking algorithm:
+         just list all the possible options one by one.
+         */
       let winner =
         if (arrGrid[0] != Empty
             && arrGrid[0] == arrGrid[1]
@@ -82,8 +92,10 @@ let make = (~you, _children) => {
         } else {
           None;
         };
+        /* Return new winner, new turn and new grid. */
       ReasonReact.Update({winner, turn: turn === X ? O : X, grid: newGrid});
     | (_, Restart) =>
+      /* Reset the entire state */
       ReasonReact.Update({
         grid: [Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty],
         turn: X,
@@ -139,6 +151,8 @@ let make = (~you, _children) => {
             )
           )>
           (
+            /* Iterate over our grid and create the cells, with their contents and background color
+               if there's a winner.*/
             array(
               Array.of_list(
                 List.mapi(
@@ -163,6 +177,7 @@ let make = (~you, _children) => {
                           "white";
                         };
                       };
+                      /* We check if the user can click here so we can hide the cursor: pointer. */
                     let canClick =
                       canClick && yourTurn && self.state.winner == None;
                     <div
