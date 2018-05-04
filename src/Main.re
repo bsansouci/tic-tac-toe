@@ -30,7 +30,7 @@ let px = x => string_of_int(x) ++ "px";
 /* Main function that creates a component, which is a simple record.
    `component` is the default record, of which we overwrite initialState, reducer and render.
    */
-let make = (_children) => {
+let make = _children => {
   /* spread the other default fields of component here and override a few */
   ...component,
   initialState: () => {
@@ -94,8 +94,13 @@ let make = (_children) => {
         } else {
           None;
         };
-        /* Return new winner, new turn and new grid. */
-      ReasonReact.Update({...state, winner, turn: turn === X ? O : X, grid: newGrid});
+      /* Return new winner, new turn and new grid. */
+      ReasonReact.Update({
+        ...state,
+        winner,
+        turn: turn === X ? O : X,
+        grid: newGrid,
+      });
     | (_, Restart) =>
       /* Reset the entire state */
       ReasonReact.Update({
@@ -134,6 +139,9 @@ let make = (_children) => {
               ~fontSize=px(20),
               ~marginTop=px(8),
               ~marginBottom=px(16),
+              ~border="1px solid #AAAAAA",
+              ~backgroundColor="#EEEEEE",
+              ~cursor="pointer",
               (),
             )
           )
@@ -148,8 +156,8 @@ let make = (_children) => {
               ~height=px(443),
               ~flexWrap="wrap",
               ~justifyContent="left",
-              ~alignItems="center",
-              ~backgroundColor="black",
+              /*~alignItems="center",*/
+              /*~backgroundColor="black",*/
               (),
             )
           )>
@@ -180,7 +188,7 @@ let make = (_children) => {
                           "white";
                         };
                       };
-                      /* We check if the user can click here so we can hide the cursor: pointer. */
+                    /* We check if the user can click here so we can hide the cursor: pointer. */
                     let canClick =
                       canClick && yourTurn && self.state.winner == None;
                     <div
@@ -192,10 +200,13 @@ let make = (_children) => {
                           ~width=px(145),
                           ~height=px(145),
                           ~fontSize=px(45),
-                          ~marginLeft=px(2),
+                          ~marginLeft=px(-1),
+                          ~paddingTop=px(2),
+                          ~marginBottom=px(-1),
                           ~justifyContent="center",
                           ~alignItems="center",
                           ~backgroundColor,
+                          ~border="1px solid black",
                           ~cursor=canClick ? "pointer" : "",
                           (),
                         )
