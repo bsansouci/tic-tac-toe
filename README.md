@@ -31,11 +31,8 @@ You don't need to touch this file.
 ### Server.re
 That's where you'll write your server-side logic for talking to the client.
 
-### DataFetcher.re
-This is where you'll write your client-side logic for talking to the server.
-
 ### Main.re
-The main tic tac toe game.
+The main tic tac toe game, and where you can write all of the client-side logic for talking to the server.
 
 ### Index.re
 Well that one's pretty straightforward.
