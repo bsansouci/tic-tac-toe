@@ -1,6 +1,8 @@
 # tic-tac-toe
 **ReasonDojo 2 starter app**
 
+Install the toolchain: https://reasonml.github.io/docs/en/editor-plugins.html.
+
 ## Run Project
 
 ```sh
