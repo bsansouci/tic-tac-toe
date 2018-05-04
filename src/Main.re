@@ -1,23 +1,18 @@
-/* Type representing a grid cell */
-type gridCell =
-  | X
-  | O
-  | Empty;
+module MyClient = BsSocket.Client.Make(Common);
 
-/* State declaration.
-   The grid is a simple linear list.
-   The turn uses a gridCell to figure out whether it's X or O's turn.
-   The winner will be a list of indices which we'll use to highlight the grid when someone won. */
-type state = {
-  grid: list(gridCell),
-  turn: gridCell,
-  winner: option(list(int)),
-};
+let socket = MyClient.create();
 
-/* Action declaration */
+type state = Common.state;
+
+/* Action declaration, purposely named different from what's in Common.t to avoid confusion.
+   You could name them the same. As a matter of fact you could share that type as well, but I
+   don't think it's a realistic thing to do because the server might send many more kinds of
+   messages to the client, and the local actions most likely won't be tied to what the server sends.
+   It only makes sense here because our clients are basically mirror images of each other. */
 type action =
-  | Restart
-  | Click(int);
+  | RestartClicked
+  | Click(int)
+  | NewState(state);
 
 /* Component template declaration.
    Needs to be **after** state and action declarations! */
@@ -29,81 +24,32 @@ let px = x => string_of_int(x) ++ "px";
 /* Main function that creates a component, which is a simple record.
    `component` is the default record, of which we overwrite initialState, reducer and render.
    */
-let make = (~you, _children) => {
+let make = _children => {
   /* spread the other default fields of component here and override a few */
   ...component,
-  initialState: () => {
-    grid: [Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty],
-    turn: X,
-    winner: None,
-  },
+  initialState: () => Common.initialState(Common.X),
+  /* Listen on socket events when mounting and simply dispatch to reducer. */
+  didMount: self =>
+    MyClient.on(socket, data =>
+      switch (data) {
+      | OnConnection(state) => self.send(NewState(state))
+      | Restart => self.send(RestartClicked)
+      | Turn(i) => self.send(Click(i))
+      }
+    ),
   /* State transitions */
   reducer: (action, state) =>
-    switch (state, action) {
-    | ({turn, grid}, Click(cell)) =>
-      /* Apply the action to the grid first, then we check if this new grid is in a winning state. */
-      let newGrid =
-        List.mapi(
-          (i, el) =>
-            if (cell === i) {
-              turn;
-            } else {
-              el;
-            },
-          grid,
-        );
-      let arrGrid = Array.of_list(newGrid);
-      /* Military grade, Machine Learning based, winning-condition checking algorithm:
-         just list all the possible options one by one.
-         */
-      let winner =
-        if (arrGrid[0] != Empty
-            && arrGrid[0] == arrGrid[1]
-            && arrGrid[1] == arrGrid[2]) {
-          Some([0, 1, 2]);
-        } else if (arrGrid[3] != Empty
-                   && arrGrid[3] == arrGrid[4]
-                   && arrGrid[4] == arrGrid[5]) {
-          Some([3, 4, 5]);
-        } else if (arrGrid[6] != Empty
-                   && arrGrid[6] == arrGrid[7]
-                   && arrGrid[7] == arrGrid[8]) {
-          Some([6, 7, 8]);
-        } else if (arrGrid[0] != Empty
-                   && arrGrid[0] == arrGrid[3]
-                   && arrGrid[3] == arrGrid[6]) {
-          Some([0, 3, 6]);
-        } else if (arrGrid[1] != Empty
-                   && arrGrid[1] == arrGrid[4]
-                   && arrGrid[4] == arrGrid[7]) {
-          Some([1, 4, 7]);
-        } else if (arrGrid[2] != Empty
-                   && arrGrid[2] == arrGrid[5]
-                   && arrGrid[5] == arrGrid[8]) {
-          Some([2, 5, 8]);
-        } else if (arrGrid[0] != Empty
-                   && arrGrid[0] == arrGrid[4]
-                   && arrGrid[4] == arrGrid[8]) {
-          Some([0, 4, 8]);
-        } else if (arrGrid[2] != Empty
-                   && arrGrid[2] == arrGrid[4]
-                   && arrGrid[4] == arrGrid[6]) {
-          Some([2, 4, 6]);
-        } else {
-          None;
-        };
-        /* Return new winner, new turn and new grid. */
-      ReasonReact.Update({winner, turn: turn === X ? O : X, grid: newGrid});
-    | (_, Restart) =>
-      /* Reset the entire state */
-      ReasonReact.Update({
-        grid: [Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty],
-        turn: X,
-        winner: None,
-      })
+    switch (action) {
+    | Click(i) =>
+      ReasonReact.Update(Common.updateState(Common.Turn(i), state))
+    | RestartClicked =>
+      ReasonReact.Update(Common.updateState(Common.Restart, state))
+    | NewState(s) =>
+      ReasonReact.Update(Common.updateState(Common.OnConnection(s), state))
     },
   render: self => {
-    let yourTurn = you == self.state.turn;
+    open Common;
+    let yourTurn = self.state.you == self.state.turn;
     let message =
       switch (self.state.winner) {
       | None => yourTurn ? "Your turn" : "Their turn"
@@ -134,7 +80,12 @@ let make = (~you, _children) => {
               (),
             )
           )
-          onClick=(_event => self.send(Restart))>
+          onClick=(
+            _event => {
+              self.send(RestartClicked);
+              MyClient.emit(socket, Restart);
+            }
+          )>
           (string("Restart"))
         </button>
         <div
@@ -169,7 +120,7 @@ let make = (~you, _children) => {
                       | Some(winner) =>
                         let isCurrentCellWinner = List.mem(i, winner);
                         if (isCurrentCellWinner
-                            && List.nth(self.state.grid, i) == you) {
+                            && List.nth(self.state.grid, i) == self.state.you) {
                           "green";
                         } else if (isCurrentCellWinner) {
                           "red";
@@ -177,12 +128,18 @@ let make = (~you, _children) => {
                           "white";
                         };
                       };
-                      /* We check if the user can click here so we can hide the cursor: pointer. */
+                    /* We check if the user can click here so we can hide the cursor: pointer. */
                     let canClick =
                       canClick && yourTurn && self.state.winner == None;
                     <div
                       key=(string_of_int(i))
-                      onClick=(_event => canClick ? self.send(Click(i)) : ())
+                      onClick=(
+                        _event =>
+                          if (canClick) {
+                            self.send(Click(i));
+                            MyClient.emit(socket, Turn(i));
+                          }
+                      )
                       style=(
                         ReactDOMRe.Style.make(
                           ~display="flex",
