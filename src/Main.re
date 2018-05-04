@@ -77,6 +77,9 @@ let make = _children => {
               ~fontSize=px(20),
               ~marginTop=px(8),
               ~marginBottom=px(16),
+              ~border="1px solid #AAAAAA",
+              ~backgroundColor="#EEEEEE",
+              ~cursor="pointer",
               (),
             )
           )
@@ -96,8 +99,8 @@ let make = _children => {
               ~height=px(443),
               ~flexWrap="wrap",
               ~justifyContent="left",
-              ~alignItems="center",
-              ~backgroundColor="black",
+              /*~alignItems="center",*/
+              /*~backgroundColor="black",*/
               (),
             )
           )>
@@ -146,10 +149,13 @@ let make = _children => {
                           ~width=px(145),
                           ~height=px(145),
                           ~fontSize=px(45),
-                          ~marginLeft=px(2),
+                          ~marginLeft=px(-1),
+                          ~paddingTop=px(2),
+                          ~marginBottom=px(-1),
                           ~justifyContent="center",
                           ~alignItems="center",
                           ~backgroundColor,
+                          ~border="1px solid black",
                           ~cursor=canClick ? "pointer" : "",
                           (),
                         )

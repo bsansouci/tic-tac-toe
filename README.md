@@ -1,7 +1,14 @@
 # tic-tac-toe
 **ReasonDojo 2 starter app**
 
-Install the toolchain: https://reasonml.github.io/docs/en/editor-plugins.html.
+Make sure to install the toolchain: https://reasonml.github.io/docs/en/editor-plugins.html for some fun fun in-editor type errors and autocomplete.
+
+## Your task
+This project contains a single-player implementation of a tic-tac-toe game. 
+
+The **goal** of this project is to realize that one can share type information and business logic between the server and the client, all such that the type checker ensures the client and server both correctly talk to each other.
+
+Your **task** is to use `reasonml-community/bs-socket` to make it multi-player. At then end you should be able to have two browser windows open side by side and be able to play against yourself (because you have no friends).
 
 ## Run Project
 
