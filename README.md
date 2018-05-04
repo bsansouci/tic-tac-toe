@@ -10,6 +10,8 @@ The **goal** of this project is to realize that one can share type information a
 
 Your **task** is to use `reasonml-community/bs-socket` to make it multi-player. At then end you should be able to have two browser windows open side by side and be able to play against yourself (because you have no friends).
 
+If you'd like to read over an example solution, to compare or simply because you're lazy ;), you can check the `solution` branch.
+
 ## Run Project
 
 ```sh
