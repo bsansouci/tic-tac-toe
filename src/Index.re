@@ -1,1 +1,1 @@
-ReactDOMRe.renderToElementWithId(<DataFetcher />, "index");
+ReactDOMRe.renderToElementWithId(<Main />, "index");

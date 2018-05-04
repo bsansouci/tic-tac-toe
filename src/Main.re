@@ -1,16 +1,17 @@
 /* Type representing a grid cell */
-type gridCell =
+type gridCellT =
   | X
   | O
   | Empty;
 
 /* State declaration.
    The grid is a simple linear list.
-   The turn uses a gridCell to figure out whether it's X or O's turn.
+   The turn uses a gridCellT to figure out whether it's X or O's turn.
    The winner will be a list of indices which we'll use to highlight the grid when someone won. */
 type state = {
-  grid: list(gridCell),
-  turn: gridCell,
+  grid: list(gridCellT),
+  turn: gridCellT,
+  you: gridCellT,
   winner: option(list(int)),
 };
 
@@ -29,12 +30,13 @@ let px = x => string_of_int(x) ++ "px";
 /* Main function that creates a component, which is a simple record.
    `component` is the default record, of which we overwrite initialState, reducer and render.
    */
-let make = (~you, _children) => {
+let make = (_children) => {
   /* spread the other default fields of component here and override a few */
   ...component,
   initialState: () => {
     grid: [Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty],
     turn: X,
+    you: X,
     winner: None,
   },
   /* State transitions */
@@ -93,17 +95,18 @@ let make = (~you, _children) => {
           None;
         };
         /* Return new winner, new turn and new grid. */
-      ReasonReact.Update({winner, turn: turn === X ? O : X, grid: newGrid});
+      ReasonReact.Update({...state, winner, turn: turn === X ? O : X, grid: newGrid});
     | (_, Restart) =>
       /* Reset the entire state */
       ReasonReact.Update({
+        ...state,
         grid: [Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty],
         turn: X,
         winner: None,
       })
     },
   render: self => {
-    let yourTurn = you == self.state.turn;
+    let yourTurn = self.state.you == self.state.turn;
     let message =
       switch (self.state.winner) {
       | None => yourTurn ? "Your turn" : "Their turn"
@@ -169,7 +172,7 @@ let make = (~you, _children) => {
                       | Some(winner) =>
                         let isCurrentCellWinner = List.mem(i, winner);
                         if (isCurrentCellWinner
-                            && List.nth(self.state.grid, i) == you) {
+                            && List.nth(self.state.grid, i) == self.state.you) {
                           "green";
                         } else if (isCurrentCellWinner) {
                           "red";
