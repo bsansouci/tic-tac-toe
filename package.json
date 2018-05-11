@@ -11,7 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "bs-socket": "reasonml-community/bs-socket.io",
+    "bs-socket": "reasonml-community/bs-socket.io#gadt",
     "express": "^4.16.3",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
