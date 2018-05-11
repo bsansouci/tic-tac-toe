@@ -8,7 +8,7 @@ This project contains a single-player implementation of a tic-tac-toe game.
 
 The **goal** of this project is to realize that one can share type information and business logic between the server and the client, all such that the type checker ensures the client and server both correctly talk to each other.
 
-Your **task** is to use `reasonml-community/bs-socket` to make it multi-player. At then end you should be able to have two browser windows open side by side and be able to play against yourself (because all your friends are out partying on this Friday evening so why on earth are you at home?! Well because you love Reason).
+Your **task** is to use [reasonml-community/bs-socket.io](https://github.com/reasonml-community/bs-socket.io/tree/gadt) to make it multi-player. At then end you should be able to have two browser windows open side by side and be able to play against yourself (because all your friends are out partying on this Friday evening so why on earth are you at home?! Well because you love Reason).
 
 If you'd like to read over an example solution, to compare or simply because you're lazy ;), you can check the `solution` branch.
 
